@@ -16,4 +16,4 @@ package-lock.json
 *.njsproj
 *.sln
 
-# local-config.json
+local-config.json
