@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const program = require('commander');
 
 function runTask(task) {
     try {
@@ -12,15 +11,13 @@ function runTask(task) {
 };
 
 function main() {
-    program
-        .version('1.0.0')
-        .option('-t, --task', 'run the task')
-        .parse(process.argv);
-
     let tasks = [];
-
-    if (program.task) {
-        tasks.push(task);
+    if (process.env.SINGLE_TASK == '1') {
+        if (process.argv.length < 3 || !process.argv[2]) {
+            console.log('you are run in single-task mode and no task provided');
+            return;
+        }
+        tasks.push(process.argv[2]);
     } else if (fs.exists('./localConfig.json')) {
         const localConfig = require('./localConfig.json');
         if (localConfig.tasks) {
@@ -33,9 +30,9 @@ function main() {
         return;
     }
 
-    tasks.foreach((task) => {
-        runTask(task);
-    });
+    for (task of tasks) {
+        runTask(task);   
+    }
 }
 
 main();
