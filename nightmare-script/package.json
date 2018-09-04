@@ -1,0 +1,17 @@
+{
+  "name": "nightmare-script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server-start": "xvfb-run npm start"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.17.1",
+    "lodash": "^4.17.10",
+    "nightmare": "^3.0.1"
+  }
+}
