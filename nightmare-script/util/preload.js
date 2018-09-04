@@ -23,7 +23,9 @@ window.__nightmare = {
   reject: function(err) {
     send('error', error(err))
   },
-  send: send
+  sendData: function() {
+    send('page', ...arguments);
+  }
 }
 
 // Listen for error events

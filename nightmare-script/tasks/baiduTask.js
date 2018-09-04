@@ -5,7 +5,7 @@ class WeiboTask extends _BaseTask {
         this.nightmare
         .goto('https://www.baidu.com')
         .evaluate(() => {
-            window.__nightmare.send('page', 'hello', '123');
+            window.__nightmare.sendData('hello', '123');
         })
         .end()
         .catch(error => {
