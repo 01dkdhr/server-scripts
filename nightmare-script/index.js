@@ -3,10 +3,10 @@ const path = require('path');
 
 function runTask(task) {
     try {
-        const curTask = require(path.join('./tasks', task));
+        const curTask = require('./tasks/' + task);
         curTask.run();
     } catch(e) {
-        console.log(`run task: ${task} err: ${e}`);
+        console.log(`run task ${task} err: ${e}`);
     }
 };
 
