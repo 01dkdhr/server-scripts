@@ -6,6 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
+*.crt
+*.key
+
 # Editor directories and files
 .idea
 .vscode
