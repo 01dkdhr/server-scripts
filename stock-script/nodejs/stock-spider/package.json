@@ -1,0 +1,13 @@
+{
+  "name": "stock-spirder",
+  "version": "1.0.0",
+  "description": "stock sprider",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.4.24",
+    "request": "^2.88.0"
+  }
+}
