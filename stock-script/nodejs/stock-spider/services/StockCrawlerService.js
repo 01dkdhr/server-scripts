@@ -15,14 +15,15 @@ const StockCrawlerService = {
         return new Promise((resolve, reject) => {
             // request({
             //     url: baseUrl,
-            //     method: 'GET'
+            //     method: 'GET',
+            //     encoding: null
             // }, (e, r, b) => {
             //     if (e || !b) {
             //         reject(e, r, b);
             //         return;
             //     }
 
-            //     fs.writeFileSync(path.join(__dirname, '../testdata/base-modules.txt'), iconv.decode(new Buffer(b), 'GBK'));
+            //     fs.writeFileSync(path.join(__dirname, '../testdata/base-modules.txt'), iconv.decode(new Buffer(b), 'GBK'), 'utf-8');
             // });
 
             const b = fs.readFileSync(path.join(__dirname, '../testdata/base-modules.txt'), 'utf-8');
