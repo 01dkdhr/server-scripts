@@ -1,15 +1,11 @@
 class StockBaseModel {
-    constructor(stockId, stockCode, stockName, market) {
-        this.id = stockId;
-        this.stockCode = stockCode;
+    constructor(stockCode, stockName, market) {
+        this.stockCode = stockCode
         this.stockName = stockName;
         this.market = market;
-    }
-
-    getStockCode() {
-        const marketId = this.market == 'sh' ? '1' : this.market == 'sz' ? '2' : '';
-
-        return this.stockCode + marketId;
+        
+        const marketId = market == 'sh' ? '1' : market == 'sz' ? '2' : '';
+        this.fullStockCode = stockCode + marketId;
     }
 }
 

@@ -1,33 +1,24 @@
 const StockCrawlerService = require('./services/StockCrawlerService.js');
+const TimeUtil = require('./utils/TimeUtil.js');
 
-function formatDate(date) {
-    const year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    month < 10 && (month = '0' + month);
-    let day = date.getDate();
-    day < 10 && (day = '0' + day);
-
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-function lastTradeDate() {
-    const date = new Date();
-    let week = date.getDay();
-
-    week == 0 && (week = 7);
-
-    return new Date(date - 1000 * 3600 * 24 * (Math.max(week - 5, 0)));
+function rndTime() {
+    return Math.floor(Math.random() * 5000);
 }
 
 function main() {
-    const today = lastTradeDate();
-    console.log('last trade date:', formatDate(today));
+    console.log('last trade date:', TimeUtil.formatDate(TimeUtil.lastTradeDay(), true));
 
-    StockCrawlerService.fetchAllStockBaseModelsFromInternet();
+    StockCrawlerService.fetchAllStocks()
+    .then((stocks) => {
+        if (stocks && stocks.length) {
+            for (let i = 0, n = stocks.length; i < n; ++i) {
+                const stock = stocks[i];
+                setTimeout(() => {
+                    StockCrawlerService.fetchDailyStock(stock);
+                }, 5000 * i + rndTime());
+            }
+        }
+    });
 }
 
 main();
