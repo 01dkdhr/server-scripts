@@ -4,7 +4,8 @@
   "description": "stock sprider",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start-mongo": "node ./scripts/startMongoServer.js"
   },
   "dependencies": {
     "iconv-lite": "^0.4.24",
