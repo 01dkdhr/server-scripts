@@ -16,9 +16,12 @@ const TimeUtil = {
         let day = date.getDate();
         day < 10 && (day = '0' + day);
 
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        const seconds = date.getSeconds();
+        let hours = date.getHours();
+        hours < 10 && (hours = '0' + hours);
+        let minutes = date.getMinutes();
+        minutes < 10 && (minutes = '0' + minutes);
+        let seconds = date.getSeconds();
+        seconds < 10 && (seconds = '0' + seconds);
 
         return `${year}-${month}-${day}` + (needTime ? ` ${hours}:${minutes}:${seconds}` : '');
     },

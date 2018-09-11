@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "start-mongo": "node ./scripts/startMongoServer.js",
-    "dump-db": "node ./scripts/dumpMongodb.js"
+    "dump-db": "node ./scripts/dumpMongodb.js",
+    "restore-db": "node ./scripts/restoreMongodb.js"
   },
   "dependencies": {
     "iconv-lite": "^0.4.24",
