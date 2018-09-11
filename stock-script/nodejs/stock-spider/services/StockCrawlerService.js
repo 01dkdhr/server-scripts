@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const request = require('request');
 const iconv = require('iconv-lite');
+const _ = require('lodash');
 
 const StockBaseModel = require('../models/StockBaseModel.js'); 
 const DailyStockModel = require('../models/DailyStockModel.js');
@@ -70,9 +71,8 @@ const StockCrawlerService = {
             });
         });
     },
-    fetchDailyStock(stock) {
+    fetchDailyStock(stock, dateTime, dateString) {
         // 抓取一只股票当天的行情数据
-        const { dateTime, dateString } = TimeUtil.getTimeAndString(new Date());
         const model = new DailyStockModel(stock.fullStockCode, dateTime, dateString);
 
         const info1Url = 'http://nufm2.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?' +
@@ -105,6 +105,53 @@ const StockCrawlerService = {
             .catch((err) => {
                 reject(err);
             });
+        });
+    },
+    fetchAllDailyStocks() {
+        let stocks = null;
+        let dailyStocks = null;
+
+        const { dateTime, dateString } = TimeUtil.getTimeAndString(new Date());
+
+        let allCount = 0;
+        let fetchedCount = 0;
+
+        StockStorage.getAllStocks()
+        .then((result) => {
+            stocks = result;
+            allCount = result.length;
+            return StockStorage.getDailyStocks({ dateString });
+        })
+        .then((result) => {
+            dailyStocks = result;
+            fetchedCount = result.length;
+        })
+        .then(() => {
+            console.log(`总共${allCount}只股票,已同步${fetchedCount},剩余${allCount-fetchedCount}`);
+            if (stocks && stocks.length) {
+                if (dailyStocks && dailyStocks.length) {
+                    dailyStocks.forEach((item) => {
+                        const index = _.findIndex(stocks, { fullStockCode: item.fullStockCode });
+                        if (index >= 0) {
+                            stocks.splice(index, 1);    
+                        }  
+                    });    
+                } 
+                
+                if (stocks && stocks.length) {
+                    for (let i = 0, n = stocks.length; i < n; ++i) {
+                        const stock = stocks[i];
+                        const pos = i;
+                        setTimeout(() => {
+                            console.log(`获取第${pos}个信息,名称为${stock.stockName}`);
+                            this.fetchDailyStock(stock, dateTime, dateString);
+                        }, 2000 * i + Math.floor(Math.random() * 2000));
+                    }
+                }
+            }
+        })
+        .catch((err) => {
+            console.log('fetchAllDailyStocks err:', err);
         });
     }
 };

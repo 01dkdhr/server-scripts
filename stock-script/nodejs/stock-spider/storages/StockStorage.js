@@ -98,6 +98,40 @@ const StockStorage = {
         .catch((err) => {
             return Promise.reject(err);  
         }));
+    },
+    getDBData(tableName, filter) {
+        return (this.connect()
+        .then((client) => {
+            try {
+                const db = client.db(mongoConfig['db-name']);
+                const collection = db.collection(tableName);
+                return new Promise((resolve, reject) => {
+                    collection.find(filter || {}).toArray((err, result) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        } 
+    
+                        client.close();
+                        return resolve(result);
+                    });
+                })
+            } catch(err) {
+                client.close();
+                return Promise.reject(err);
+            }
+        })
+        .catch((err) => {
+            return Promise.reject(err);  
+        }));
+    },
+    getAllStocks(filter) {
+        const tableName = 'stocks';
+        return this.getDBData(tableName, filter);
+    },
+    getDailyStocks(filter) {
+        const tableName = 'daily_stock';
+        return this.getDBData(tableName, filter);
     }
 };
 
