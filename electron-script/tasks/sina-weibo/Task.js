@@ -52,7 +52,7 @@ class Task extends BaseTask {
     initEvents() {
         const eventName = `main-event-from-${taskName}`;
         this.ipcMain.on(`renderer-event-from-${taskName}`, (event, type, ...args) => {
-            console.log(`${taskName} type: `, ...args);
+            console.log(`${taskName} ${type}: `, ...args);
             switch(type) {
                 case 'error': {
                     this.runFailed(...args);
