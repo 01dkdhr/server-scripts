@@ -1,7 +1,18 @@
-const path = require('path')
-const fs = require('fs')
 const { app } = require('electron');
 const localConfig = require('./local-config.json');
+const _ = require('lodash');
+
+let taskArray = [];
+function finishTask(task) {
+    const index = _.findIndex(taskArray, task);
+    if (index >= 0) {
+        taskArray.splice(index, 1);
+    }
+
+    if (!index.length) {
+        app.exit();
+    }
+}
 
 function runTask(taskName) {
     try {
@@ -11,16 +22,14 @@ function runTask(taskName) {
         task.run()
         .then((result) => {
             console.log(`success run task: ${taskName}`);
-            app.exit();
+            finishTask(taskName);
         })
         .catch((err) => {
-            console.log(`failed run task: ${taskName}: ${err}`);
-            app.exit();
+            throw err;
         });
-
     } catch(err) {
         console.log(`failed run task: ${taskName}: ${err}`);
-        app.exit();
+        finishTask(taskName);
     }
 }
 
@@ -30,7 +39,8 @@ function main() {
         return;
     }
 
-    localConfig.tasks.forEach((task) => {
+    taskArray = localConfig.tasks;
+    taskArray.forEach((task) => {
         runTask(task);
     });
 }
