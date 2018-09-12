@@ -43,7 +43,6 @@ class Task extends BaseTask {
             this.switchPageTask.timer = setTimeout(() => {
                 if (this.switchPageTask && this.switchPageTask.timer) {
                     clearTimeout(this.switchPageTask.timer);
-                    this.switchPageTask = null;
                     this.runFailed(`switch url timeout: ${JSON.stringify(this.switchPageTask)}`);
                 }
             }, 30000);
