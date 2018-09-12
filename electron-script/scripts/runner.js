@@ -20,6 +20,7 @@ function electronLog (data, color) {
   }
 
 function run() {
+    console.log(`electron path: ${electron}`);
     const electronProcess = spawn(electron, ['.'])
 
     electronProcess.stdout.on('data', data => {
