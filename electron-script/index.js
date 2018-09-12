@@ -19,7 +19,8 @@ function runTask(taskName) {
         });
 
     } catch(err) {
-        console.log(`run task ${taskName} err: ${err}`);
+        console.log(`failed run task: ${taskName}: ${err}`);
+        app.exit();
     }
 }
 
