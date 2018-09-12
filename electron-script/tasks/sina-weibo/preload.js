@@ -32,6 +32,8 @@ ipcRenderer.on(`main-event-from-${taskName}`, (event, type, ...args) => {
 
 window.onload= function() {
     sendNormalInfo('page-loaded', location.href);
+
+    location.href = 'https://www.baidu.com';
 }
 
 function login(access) {
