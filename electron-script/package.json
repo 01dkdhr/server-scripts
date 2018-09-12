@@ -1,0 +1,17 @@
+{
+  "name": "electron-script",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./scripts/runner.js",
+    "server-start": "xvfb-run node ./scripts/runner.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "electron": "^1.8.7",
+    "lodash": "^4.17.10"
+  }
+}
