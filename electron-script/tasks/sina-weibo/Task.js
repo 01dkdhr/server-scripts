@@ -52,14 +52,13 @@ class Task extends BaseTask {
     initEvents() {
         const eventName = `main-event-from-${taskName}`;
         this.ipcMain.on(`renderer-event-from-${taskName}`, (event, type, ...args) => {
+            console.log(`${taskName} type: `, ...args);
             switch(type) {
                 case 'error': {
-                    console.log(`${taskName} err: `, ...args);
                     this.runFailed(...args);
                     break;
                 }
                 case 'warning': {
-                    console.log(`${taskName} warning: `, ...args);
                     break;
                 }
                 case 'switch-page-task': {
@@ -68,7 +67,6 @@ class Task extends BaseTask {
                 }
                 case 'page-loaded': {
                     const url = args[0];
-                    console.log(`${taskName} page loaded: ${url}`);
 
                     if (!this.pageLoaded && url == this.config.url) {
                         this.pageLoaded = true;
