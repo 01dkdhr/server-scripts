@@ -107,27 +107,17 @@ const StockCrawlerService = {
             });
         });
     },
-    fetchAllDailyStocks() {
-        let stocks = null;
+    fetchAllDailyStocks(stocks) {
         let dailyStocks = null;
 
         const { dateTime, dateString } = TimeUtil.getTimeAndString(new Date());
 
-        let allCount = 0;
-        let fetchedCount = 0;
-
-        StockStorage.getAllStocks()
+        StockStorage.getDailyStocks({ dateString })
         .then((result) => {
-            stocks = result;
-            allCount = result.length;
-            return StockStorage.getDailyStocks({ dateString });
-        })
-        .then((result) => {
-            dailyStocks = result;
-            fetchedCount = result.length;
+            dailyStocks = result || [];
         })
         .then(() => {
-            console.log(`总共${allCount}只股票,已同步${fetchedCount},剩余${allCount-fetchedCount}`);
+            console.log(`总共${stocks.length}只股票,已同步${dailyStocks.length},剩余${stocks.length-dailyStocks.length}`);
             if (stocks && stocks.length) {
                 if (dailyStocks && dailyStocks.length) {
                     dailyStocks.forEach((item) => {

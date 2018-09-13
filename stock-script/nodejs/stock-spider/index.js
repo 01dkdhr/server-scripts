@@ -13,7 +13,7 @@ function main() {
     StockCrawlerService.fetchAllStocks()
     .then((stocks) => {
         if (stocks && stocks.length) {
-            StockCrawlerService.fetchAllDailyStocks();
+            StockCrawlerService.fetchAllDailyStocks(stocks);
         }
     });
 }
