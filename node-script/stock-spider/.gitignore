@@ -20,4 +20,5 @@ package-lock.json
 local-config.json
 *.pyc
 *.log
-dump-mongodb/*
+dump-mongodb/node-stock/
+dump-mongodb/*.txt
