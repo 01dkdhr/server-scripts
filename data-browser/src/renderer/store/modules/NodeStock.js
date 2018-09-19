@@ -1,5 +1,10 @@
+import _ from 'lodash';
+
+const localConfig = require('@/../local-config.json');
+
 const state = {
-  main: 0
+  config: _.find(localConfig['project-list'], { name: 'node-stock' }),
+  dbInited: false
 }
 
 const mutations = {

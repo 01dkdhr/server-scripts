@@ -1,7 +1,9 @@
 <template>
-  <div id="app">
-    <router-view></router-view>
-  </div>
+<div id="app">
+    <keep-alive>
+        <router-view></router-view>
+    </keep-alive>
+</div>
 </template>
 
 <script>
@@ -11,5 +13,8 @@
 </script>
 
 <style>
-  /* CSS */
+* {
+    margin: 0;
+    padding: 0;
+}
 </style>

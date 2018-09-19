@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, globalShortcut, Menu } from 'electron'
 
 /**
  * Set `__static` path to static files in production
@@ -30,7 +30,20 @@ function createWindow () {
   })
 }
 
-app.on('ready', createWindow)
+function registerShortcut() {
+    globalShortcut.register('CommandOrControl + shift + f5', () => {
+        if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.openDevTools({ mode: 'detach' });
+            mainWindow.webContents.send('log-store');
+        }     
+    });
+}
+
+app.on('ready', () => {
+    createWindow()
+    registerShortcut()
+    initApplicationMenu()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -43,6 +56,11 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+// application menu
+function initApplicationMenu() {
+
+}
 
 /**
  * Auto Updater

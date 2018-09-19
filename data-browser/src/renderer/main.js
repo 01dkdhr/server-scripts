@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import Vue from 'vue'
 
 import App from './App'
@@ -14,3 +15,7 @@ new Vue({
   store,
   template: '<App/>'
 }).$mount('#app')
+
+ipcRenderer.on('log-store', () => {
+    console.log(store.state);
+})
