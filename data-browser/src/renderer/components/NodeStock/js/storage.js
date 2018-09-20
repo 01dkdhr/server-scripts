@@ -6,7 +6,11 @@ const storage = {
     init(config, loadDays) {
         this.config = config;
         const dbInfo = config['db-info'];
-        this.dbHost = `mongodb://${dbInfo.host}/${dbInfo['db-name']}`;
+        if (dbInfo.user && dbInfo.password) {
+            this.dbHost = `mongodb://${dbInfo.user}:${dbInfo.password}@${dbInfo.host}/${dbInfo['db-name']}`;
+        } else {
+            this.dbHost = `mongodb://${dbInfo.host}/${dbInfo['db-name']}`;
+        }
     },
     connect() {
         return new Promise((resolve, reject) => {
