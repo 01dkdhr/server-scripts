@@ -19,3 +19,10 @@ new Vue({
 ipcRenderer.on('log-store', () => {
     console.log(store.state);
 })
+
+ipcRenderer.on('app-menu-goto-homepage', () => {
+    router.push({
+        path: '/',
+        replace: false
+    })
+})

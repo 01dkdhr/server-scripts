@@ -15,12 +15,23 @@
 </template>
 
 <script>
+import { ipcRenderer } from 'electron';
 export default {
     name: 'home-page',
     data() {
         return {
-            stateData: this.$store.state.HomePage
+ 
         }
+    },
+    computed: {
+        stateData() {
+            return this.$store.state.HomePage;
+        }
+    },
+    beforeRouteEnter (to, from, next) {
+        // 设置appmenu
+        ipcRenderer.send('set-app-menu', []);
+        next();
     }
 }
 </script>

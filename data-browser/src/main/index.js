@@ -1,4 +1,5 @@
 import { app, BrowserWindow, globalShortcut, Menu } from 'electron'
+import MenuManager from './MenuManager.js';
 
 /**
  * Set `__static` path to static files in production
@@ -42,7 +43,7 @@ function registerShortcut() {
 app.on('ready', () => {
     createWindow()
     registerShortcut()
-    initApplicationMenu()
+    MenuManager.init(mainWindow)
 })
 
 app.on('window-all-closed', () => {
@@ -56,11 +57,6 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-// application menu
-function initApplicationMenu() {
-
-}
 
 /**
  * Auto Updater

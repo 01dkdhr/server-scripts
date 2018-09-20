@@ -5,19 +5,50 @@
             :class="[stateData.dbInited ? 'success' : 'fail']">
             {{stateData.dbInited ? '初始化成功' : '数据未初始化'}}
         </span>
-        <button class="init-db-btn">载入数据</button>
     </div>
     <div class="top-place-holder"></div>
 </div>
 </template>
 
 <script>
+import { ipcRenderer } from 'electron';
+import service from './js/service.js';
 export default {
     name: 'node-stock',
     data() {
         return {
-            stateData: this.$store.state.NodeStock
+            
         }
+    },
+    computed: {
+        stateData() {
+            return this.$store.state.NodeStock;
+        }
+    },
+    created() {
+        service.init(this.stateData.config);
+        ipcRenderer.on('app-menu-node-stock-load-data', () => {
+            this.asyncLoadData();
+        });
+    },
+    method: {
+        asyncLoadData() {
+
+        }
+    },
+    beforeRouteEnter (to, from, next) {
+        // 设置appmenu
+        ipcRenderer.send('set-app-menu', [
+            {
+                label: '回到首页',
+                handleEvent: 'app-menu-goto-homepage'
+            },
+            {
+                label: '载入数据',
+                handleEvent: 'app-menu-node-stock-load-data'    
+            }
+        ]);
+        next();
     }
 }
 </script>
