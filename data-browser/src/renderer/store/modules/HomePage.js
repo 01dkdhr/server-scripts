@@ -1,4 +1,4 @@
-const localConfig = require('@/../local-config.json');
+const localConfig = require('@/../../local-config.json');
 
 const state = {
   projectList: localConfig['project-list'] || []

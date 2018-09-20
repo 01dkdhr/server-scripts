@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-const localConfig = require('@/../local-config.json');
+const localConfig = require('@/../../local-config.json');
 
 const state = {
   config: _.find(localConfig['project-list'], { name: 'node-stock' }),
