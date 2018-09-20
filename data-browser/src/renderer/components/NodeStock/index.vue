@@ -3,7 +3,7 @@
     <div class="tool-bar">
         <span class="db-state" 
             :class="[stateData.dbInited ? 'success' : 'fail']">
-            {{stateData.dbInited ? '初始化成功' : '数据未初始化'}}
+            {{stateData.dbInited ? '数据加载成功' : '数据未加载'}}
         </span>
     </div>
     <div class="top-place-holder"></div>
@@ -26,14 +26,25 @@ export default {
         }
     },
     created() {
-        service.init(this.stateData.config);
+        service.init(this.stateData.config, this.stateData.loadDays);
+        this.asyncLoadData();
         ipcRenderer.on('app-menu-node-stock-load-data', () => {
-            this.asyncLoadData();
+            this.$store.commit('SET_DB_INITED', false);
+            this.asyncLoadData()
         });
     },
-    method: {
+    methods: {
         asyncLoadData() {
-
+            service.loadData()
+            .then(({ stocks, dailyStocks, dateArray }) => {
+                this.$store.commit('SET_STOCKS', stocks);
+                this.$store.commit('SET_DAILY_STOCKS', dailyStocks);
+                this.$store.commit('SET_DATE_ARRAY', dateArray);
+                this.$store.commit('SET_DB_INITED', true);        
+            })
+            .catch((err) => {
+                console.log('asyncLoadData err:', err)
+            });
         }
     },
     beforeRouteEnter (to, from, next) {
