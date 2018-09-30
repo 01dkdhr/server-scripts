@@ -8,22 +8,28 @@
         </span>
         <!-- 时间选择 -->
         <div class="date-area">
-            <input type="radio" id="group-date" value="group-date" v-model="dateMode">
+            <input type="radio" id="group-date" v-model="date.dateGroup.mode" value="group" @click="changeDateMode('group')">
             <span>起始时间:</span>
-            <input :disabled="dateMode !== 'group-date'" type="date" name="start-date" v-model="dateGroup.startDate"/>
+            <select :disabled="date.dateGroup.mode !== 'group'" v-model="date.dateGroup.startDate">
+                <option v-for="(date, index) in stateData.dateArray" :value="date" :key="index">{{date | dateString}}</option>
+            </select>
             <span>截止时间:</span>
-            <input :disabled="dateMode !== 'group-date'" type="date" name="end-date" v-model="dateGroup.endDate"/>
+            <select :disabled="date.dateGroup.mode !== 'group'" v-model="date.dateGroup.endDate">
+                <option v-for="(date, index) in endTimeList" :value="date" :key="index">{{date | dateString}}</option>
+            </select>
         </div>
         <div class="date-area">
-            <input type="radio" id="single-date" value="single-date" v-model="dateMode">
+            <input type="radio" id="single-date" v-model="date.dateSingle.mode" value="single" @click="changeDateMode('single')">
             <span>单一时间:</span>
-            <input :disabled="dateMode !== 'single-date'" type="date" name="single-date" v-model="dateSingle.date"/>
+            <select :disabled="date.dateGroup.mode !== 'single'" v-model="date.dateSingle.date">
+                <option v-for="date in stateData.dateArray" :value="date" :key="date">{{date | dateString}}</option>
+            </select>
         </div>
         <!-- 市场选择 -->
         <div class="market-select">
             <span>市场:</span>
-            <select v-model="marketMode">
-                <option v-for="(mode, index) in marketList" :value="mode" :key="index">{{mode}}</option>
+            <select v-model="market.mode">
+                <option v-for="(mode, index) in market.list" :value="mode" :key="index">{{mode}}</option>
             </select>
         </div>
     </div>
@@ -51,28 +57,60 @@ export default {
     name: 'node-stock',
     data() {
         return {
-            dateGroup: {
-                startDate: 0,
-                endDate: 0
+            date: {
+                dateGroup: {
+                    startDate: 0,
+                    endDate: 0,
+                    mode: 'single'
+                }, 
+                dateSingle: {
+                    date: 0,
+                    mode: 'single'
+                },  
             },
-            dateSingle: {
-                date: 0
+            market: {
+                list: ['all', 'sh', 'sz'],
+                mode: 'all'    
             },
-            dateMode: 'single-date',
-            marketList: ['all', 'sh', 'sz'],
-            marketMode: 'all',
             tableHeader: defaultTableHeader,
             sortKeys: [] // 排序字段
         }
     },
     computed: {
+        endTimeList() {
+            if (this.date.dateGroup.startDate) {
+                const index = this.stateData.dateArray.indexOf(this.date.dateGroup.startDate);
+                if (index >= 0) {
+                    
+                    const arr = this.stateData.dateArray.slice(0, index + 1);
+                    if (arr.indexOf(this.date.dateGroup.endDate) < 0) {
+                        this.date.dateGroup.endDate = arr[0];    
+                    }
+
+                    return arr;
+                }
+                
+            }
+            return this.stateData.dateArray; 
+        },
         stateData() {
             return this.$store.state.NodeStock;
         },
+        stockFilter() {
+            const filter = {};
+            if (this.date.dateGroup.mode == 'group') {
+                filter.startDate = this.date.dateGroup.startDate;
+                filter.endDate = this.date.dateGroup.endDate;
+            } else if (this.date.dateGroup.mode == 'single') {
+                filter.startDate = filter.endDate = this.date.dateSingle.date;
+            }
+
+            return filter;
+        },
         showStocks() {
             const list = [];
-            this.stateData.stocks.slice(0, 10).forEach((stock) => {
-                if (this.marketMode !== 'all' && stock.market !== this.marketMode) {
+            this.stateData.stocks.forEach((stock) => {
+                if (this.market.mode !== 'all' && stock.market !== this.market.mode) {
                     return;
                 }
 
@@ -81,22 +119,21 @@ export default {
                     fullStockCode: stock.fullStockCode    
                 };
 
-                if (this.dateMode == 'single-date') {
+                if (this.date.dateSingle.mode == 'single') {
                     const dailyStock = _.find(this.stateData.dailyStocks, { 
                         fullStockCode: stock.fullStockCode,
-                        dateTime: TimeUtil.transStringToDate(this.dateSingle.date)
+                        dateTime: this.date.dateSingle.date
                     }); 
                     
                     if (dailyStock) {
                         Object.assign(item, dailyStock);
                         list.push(item);
                     }
-                } else if (this.dateMode == 'group-date') {
-                    const start = TimeUtil.transStringToDate(this.dateGroup.startDate);
-                    const end = TimeUtil.transStringToDate(this.dateGroup.endDate);
+                } else if (this.date.dateGroup.mode == 'group') {
                     const dailyStocks = _.filter(this.stateData.dailyStocks, (e) => {
                         return ((e.fullStockCode == stock.fullStockCode) 
-                            && (e.dateTime >= start) && (e.dateTime <= end));
+                            && (e.dateTime >= this.date.dateGroup.stateData) 
+                            && (e.dateTime <= this.date.dateGroup.endDate));
                     }); 
 
                     if (dailyStocks && dailyStocks.length) {
@@ -133,19 +170,22 @@ export default {
     methods: {
         asyncLoadData() {
             service.loadData()
-            .then(({ stocks, dailyStocks, dateArray }) => {
+            .then(({ stocks, dateArray }) => {
                 this.$store.commit('SET_STOCKS', stocks);
-                this.$store.commit('SET_DAILY_STOCKS', dailyStocks);
                 this.$store.commit('SET_DATE_ARRAY', dateArray);
                 this.$store.commit('SET_DB_INITED', true);   
                 
-                this.dateGroup.startDate = TimeUtil.transDateToString(this.stateData.dateArray[this.stateData.dateArray.length - 1]);
-                this.dateGroup.endDate = TimeUtil.transDateToString(this.stateData.dateArray[0]);
-                this.dateSingle.date = this.dateGroup.endDate;
+                this.date.dateGroup.startDate = this.stateData.dateArray[this.stateData.dateArray.length - 1];
+                this.date.dateGroup.endDate = this.stateData.dateArray[0];
+                this.date.dateSingle.date = this.date.dateGroup.endDate;
             })
             .catch((err) => {
                 console.log('asyncLoadData err:', err)
             });
+        },
+        changeDateMode(mode) {
+            this.date.dateGroup.mode = mode;
+            this.date.dateSingle.mode = mode;
         },
         getShowWord(key) {
             switch(key) {
@@ -222,10 +262,18 @@ export default {
         ]);
         next();
     },
+    filters: {
+        dateString: (date) => {
+            return TimeUtil.transDateToString(date);
+        }
+    },
     watch: {
-        // marketMode: (newValue) => {
-        //     console.log(newValue)
-        // }
+        stockFilter: function(newValue) {
+            service.loadDailyStockData(newValue)
+            .then(({ dailyStocks }) => {
+                this.$store.commit('SET_DAILY_STOCKS', dailyStocks);
+            });
+        }
     }
 }
 </script>
@@ -244,6 +292,10 @@ export default {
         display: flex;
         align-items: center;
         justify-content: left;
+
+        * {
+            vertical-align: middle;
+        }
 
         .db-state {
             &.success {

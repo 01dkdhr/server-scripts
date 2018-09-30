@@ -8,34 +8,48 @@ const service = {
         storage.init(config, loadDays);
     },
     loadData() {
-        return new Promise((resole, reject) => {
+        return new Promise((resolve, reject) => {
             storage.distinctData('daily_stock', 'dateTime')
             .then((result) => {
                 // 筛选出所有时间 按从大到小排序,取最近30个
                 const dateArray = result.sort((a, b) => b - a).slice(0, this.loadDays);
-                const endDate = dateArray[dateArray.length - 1];
-                return { dateArray, endDate };
+                return { dateArray };
             })
-            .then(({ dateArray, endDate }) => {
-                return (storage.getDBData('daily_stock', { dateTime: { $gte: endDate } })
-                .then((result) => {
-                    return Promise.resolve({ dailyStocks: result, dateArray });
-                }));
-            })
-            .then(({ dailyStocks, dateArray }) => {
+            .then(({ dateArray }) => {
                 return (storage.getDBData('stocks', {})
                 .then((result) => {
-                    resole({
+                    resolve({
                         stocks: result,
-                        dailyStocks,
                         dateArray
                     });
                 }));
             })
             .catch((err) => {
                 reject(err);
-            })
+            });
         });
+    },
+    loadDailyStockData(param) {
+        return new Promise((resolve, reject) => {
+            if (!param.startDate || !param.endDate) {
+                reject('param err:', param);
+                return;
+            }
+
+            const filter = {
+                dateTime: {
+                    $gte: param.startDate,
+                    $lte: param.endDate
+                }
+            };
+            storage.getDBData('daily_stock', filter)
+            .then((result) => {
+                resolve({ dailyStocks: result });
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });    
     }
 };
 

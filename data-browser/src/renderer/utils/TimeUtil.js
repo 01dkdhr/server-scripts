@@ -1,5 +1,9 @@
 const TimeUtil = {
     transDateToString(date) {
+        if (!date) {
+            return '';
+        }
+        
         const tmpDate = new Date(date);
         let month = tmpDate.getMonth() + 1;
         month = (month.toString().length == 1) ? ("0" + month) : month;

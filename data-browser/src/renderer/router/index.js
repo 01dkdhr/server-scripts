@@ -8,12 +8,12 @@ export default new Router({
         {
             path: '/',
             name: 'home-page',
-            component: require('@/components/HomePage/index.vue').default
+            component: require('@/components/HomePage/HomePage.vue').default
         },
         {
             path: '/node-stock',
             name: 'node-stock',
-            component: require('@/components/NodeStock/index.vue').default
+            component: require('@/components/NodeStock/NodeStock.vue').default
         },
         {
             path: '*',
