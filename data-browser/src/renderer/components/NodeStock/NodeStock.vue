@@ -36,13 +36,22 @@
     <div class="top-place-holder"></div>
     <!-- 股票表格 -->
     <table border="1" class="stock-table">
-    <tr>
-        <th v-for="head in tableHeader" :key="head">{{getShowWord(head)}}</th>
-    </tr>
-    <tr v-for="stock in showStocks" :key="stock.fullStockCode">
-        <td v-for="head in tableHeader" :key="head">{{stock[head] || '-'}}</td>
-    </tr>
+        <thead>
+            <th v-for="head in tableHeader" 
+                :key="head" 
+                :class="{active: sort.key == head}"
+                @click="setSortKey(head)">
+                {{getShowWord(head)}}
+            </th>
+        </thead>
+        <tbody>
+            <tr v-for="stock in showStocks" :key="stock.fullStockCode">
+                <td v-for="head in tableHeader" :key="head">{{stock[head] || '-'}}</td>
+            </tr>
+        </tbody>
     </table>
+    <!-- loading -->
+    <loading v-if="loading"></loading>
 </div>
 </template>
 
@@ -52,9 +61,15 @@ import service from './js/service.js';
 import TimeUtil from '@/utils/TimeUtil.js';
 import _ from 'lodash';
 
+import loading from '@/components/Loading.vue'; 
+import { isNumber } from 'util';
+
 const defaultTableHeader = ['stockName', 'fullStockCode', 'curPrice', 'averagePrice', 'buyVolume', 'yesterdayClosePrice', 'openPrice', 'marketValue', 'high', 'low', 'pb', 'pe', 'amountRatio', 'turnoverRate', 'tradeVolume', 'tradeValue', 'sellVolume', 'entrustRatio', 'circulationValue', 'superFlowIn', 'superFlowOut', 'bigFlowIn', 'bigFlowOut', 'middleFlowIn', 'middleFlowOut', 'littleFlowIn', 'littleFlowOut'];
 export default {
     name: 'node-stock',
+    components: { 
+        loading 
+    },
     data() {
         return {
             date: {
@@ -73,7 +88,13 @@ export default {
                 mode: 'all'    
             },
             tableHeader: defaultTableHeader,
-            sortKeys: [] // 排序字段
+            totalStocks: [],
+            sort: {
+                key: '',
+                order: true
+            },
+            showCount: 100,
+            loading: false
         }
     },
     computed: {
@@ -108,55 +129,23 @@ export default {
             return filter;
         },
         showStocks() {
-            const list = [];
-            this.stateData.stocks.forEach((stock) => {
-                if (this.market.mode !== 'all' && stock.market !== this.market.mode) {
-                    return;
-                }
-
-                const item = {
-                    stockName: stock.stockName,
-                    fullStockCode: stock.fullStockCode    
-                };
-
-                if (this.date.dateSingle.mode == 'single') {
-                    const dailyStock = _.find(this.stateData.dailyStocks, { 
-                        fullStockCode: stock.fullStockCode,
-                        dateTime: this.date.dateSingle.date
-                    }); 
-                    
-                    if (dailyStock) {
-                        Object.assign(item, dailyStock);
-                        list.push(item);
+            if (this.sort.key) {
+                return this.totalStocks.sort((a, b) => {
+                    const key = this.sort.key;
+                    if (!a[key] || !b[key]) {
+                        return 0;
                     }
-                } else if (this.date.dateGroup.mode == 'group') {
-                    const dailyStocks = _.filter(this.stateData.dailyStocks, (e) => {
-                        return ((e.fullStockCode == stock.fullStockCode) 
-                            && (e.dateTime >= this.date.dateGroup.stateData) 
-                            && (e.dateTime <= this.date.dateGroup.endDate));
-                    }); 
 
-                    if (dailyStocks && dailyStocks.length) {
-                        Object.Keys(dailyStocks).forEach((key) => {
-                            let count = 0;
-                            let totalVaule = 0;
-                            dailyStocks.forEach((e) => {
-                                if (e[key]) {
-                                    totalVaule += e[key];
-                                    count ++;    
-                                }
-                            });   
-                            
-                            item[key] = count ? (totalVaule / count) : 0;
-                        });
-                        
-                        list.push(item);
+                    if (isNumber(a[key]) && isNumber(b[key])) {
+                        if (this.sort.order) {
+                            return b[key] - a[key];  
+                        }
+                        return a[key] - b[key];    
                     }
-                }
-
-            });
-
-            return list;
+                    return 0;
+                }).slice(0, this.showCount + 1);
+            }
+            return this.totalStocks.slice(0, this.showCount + 1);
         }
     },
     created() {
@@ -246,6 +235,44 @@ export default {
             default:
                 return '';
             }
+        },
+        setSortKey(key) {
+            if (this.sort.key == key) {
+                this.sort.order = !this.sort.order;
+            } else {
+                this.sort.key = key;
+                this.sort.order = true;
+            }
+        },
+        buildStockList() {
+            this.totalStocks = [];
+
+            const stockObj = {};
+            this.stateData.dailyStocks.forEach((item) => {
+                if (!stockObj[item.fullStockCode]) {
+                    const info = _.find(this.stateData.stocks, { fullStockCode: item.fullStockCode });
+                    if (info) {
+                        const obj = {};
+                        Object.assign(obj, info);
+                        Object.assign(obj, item); 
+                        obj.itemCount = 1;
+                        stockObj[item.fullStockCode] = obj;  
+                    }
+                } else {
+                    const stock = stockObj[item.fullStockCode];
+                    Object.keys(item).forEach((key) => {
+                        if (stock[key] && isNumber(stock[key]) && isNumber(item[key])) {
+                            stock[key] = (stock[key] * stock.itemCount + item[key]) / (++stock.itemCount);   
+                        } else if (isNumber(item[key])) {
+                            stock[key] = item[key];    
+                        }
+                    })
+                }
+            });
+
+            Object.keys(stockObj).forEach((key) => {
+                this.totalStocks.push(stockObj[key]);    
+            });
         }
     },
     beforeRouteEnter (to, from, next) {
@@ -269,9 +296,12 @@ export default {
     },
     watch: {
         stockFilter: function(newValue) {
+            this.loading = true;
             service.loadDailyStockData(newValue)
             .then(({ dailyStocks }) => {
                 this.$store.commit('SET_DAILY_STOCKS', dailyStocks);
+                this.buildStockList();
+                this.loading = false;
             });
         }
     }
@@ -281,7 +311,7 @@ export default {
 <style lang="scss" scoped>
 #node-stock {
     .tool-bar {
-        position: absolute;
+        position: fixed;
         height: 30px;
         z-index: 999;
         width: 100%;
@@ -327,6 +357,15 @@ export default {
         {
             white-space: nowrap;
             padding: 3px;
+        }
+
+        th {
+            cursor: default;
+            user-select: none;
+
+            &.active {
+                background-color: aquamarine;
+            }
         }
     }
 }
