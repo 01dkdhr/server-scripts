@@ -1,5 +1,6 @@
 import { app, BrowserWindow, globalShortcut, Menu } from 'electron'
 import MenuManager from './MenuManager.js';
+import events from './events/index.js';
 
 /**
  * Set `__static` path to static files in production
@@ -44,6 +45,7 @@ app.on('ready', () => {
     createWindow()
     registerShortcut()
     MenuManager.init(mainWindow)
+    events.init()
 })
 
 app.on('window-all-closed', () => {

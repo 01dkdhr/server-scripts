@@ -50,6 +50,20 @@ const service = {
                 reject(err);
             });
         });    
+    },
+    getOneDailyStockData(fullStockCode) {
+        return new Promise((resolve, reject) => {
+            const filter = {
+                fullStockCode
+            };
+            storage.getDBData('daily_stock', filter)
+            .then((result) => {
+                resolve({ dailyStocks: result });
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
     }
 };
 

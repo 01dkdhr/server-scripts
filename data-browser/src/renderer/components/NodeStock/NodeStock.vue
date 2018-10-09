@@ -37,7 +37,8 @@
     <!-- 股票表格 -->
     <table border="1" class="stock-table">
         <thead>
-            <th v-for="head in tableHeader" 
+            <th>{{getShowWord('stockName')}}</th>
+            <th v-for="head in tableHeaderNotName" 
                 :key="head" 
                 :class="{active: sort.key == head}"
                 @click="setSortKey(head)">
@@ -46,7 +47,8 @@
         </thead>
         <tbody>
             <tr v-for="stock in showStocks" :key="stock.fullStockCode">
-                <td v-for="head in tableHeader" :key="head">{{stock[head] || '-'}}</td>
+                <td class="stock-name" @click="openStockWindow(stock)">{{stock.stockName || '-'}}</td>
+                <td v-for="head in tableHeaderNotName" :key="head">{{stock[head] || '-'}}</td>
             </tr>
         </tbody>
     </table>
@@ -98,6 +100,15 @@ export default {
         }
     },
     computed: {
+        tableHeaderNotName() {
+            const list = _.cloneDeep(this.tableHeader);
+            const index = list.indexOf('stockName');
+            if (index >= 0) {
+                list.splice(index, 1);
+            }
+
+            return list;
+        },
         endTimeList() {
             if (this.date.dateGroup.startDate) {
                 const index = this.stateData.dateArray.indexOf(this.date.dateGroup.startDate);
@@ -273,6 +284,20 @@ export default {
             Object.keys(stockObj).forEach((key) => {
                 this.totalStocks.push(stockObj[key]);    
             });
+        },
+        openStockWindow(stock) {
+            if (!stock || !stock.fullStockCode) {
+                return;
+            }
+            this.loading = true;
+            service.getOneDailyStockData(stock.fullStockCode)
+            .then(({ dailyStocks }) => {
+                ipcRenderer.send('node-stock-open-detail-window', stock, dailyStocks);
+                this.loading = false;
+            })
+            .catch((err) => {
+                this.loading = false;
+            });
         }
     },
     beforeRouteEnter (to, from, next) {
@@ -365,6 +390,14 @@ export default {
 
             &.active {
                 background-color: aquamarine;
+            }
+        }
+
+        .stock-name {
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
             }
         }
     }
