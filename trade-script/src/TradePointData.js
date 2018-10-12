@@ -22,7 +22,7 @@ function start() {
         process.exit();
     }
 
-    let filePath = path.join(__dirname, '../data/tmp');
+    let filePath = path.join(__dirname, '../data');
     if (!fs.existsSync(filePath)) {
         console.log('err: filePath is not exit:', filePath);
         process.exit();   
