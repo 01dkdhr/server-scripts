@@ -3,33 +3,26 @@ const MongoClient = require('mongodb').MongoClient;
 let url = '';
 let client;
 
-function connect() {
-    return new Promise((resolve, reject) => {
-        try {
-            MongoClient.connect(url, { useNewUrlParser: true }, (err, client) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                resolve(client);
-            });
-        } catch(e) {
-            reject(e);
-        }
-    }); 
-}
-
 const storage = {
     init({ path, dbName, user, password }) {
         url = `mongodb://${user}:${password}@${path}/${dbName}`;
     },
     connect() {
-        return connect()
-        .then((result) => {
-            client = result;
-            return Promise.resolve();
-        });
+        return new Promise((resolve, reject) => {
+            try {
+                MongoClient.connect(url, { useNewUrlParser: true }, (err, result) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+    
+                    client = result;
+                    resolve();
+                });
+            } catch(e) {
+                reject(e);
+            }
+        }); 
     },
     disConnect() {
         client.close();
