@@ -149,15 +149,15 @@ function run() {
             dbName: config.dbName,
             table: SHTable
         })
-        .then(() => {
-            storage.createTable({
-                dbName: config.dbName,
-                table: SZTable
-            })
+    })
+    .then(() => {
+        storage.createTable({
+            dbName: config.dbName,
+            table: SZTable
         })
-        .then(() => {
-            start();
-        });
+    })
+    .then(() => {
+        start();
     });
 }
 
