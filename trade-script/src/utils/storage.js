@@ -29,55 +29,61 @@ const storage = {
         client = null;
     },
     createTable({ dbName, table }) {
-        try {
-            const db = client.db(dbName);
-            db.createCollection(table, (err, result) => {
-                if (err) {
-                    throw err;
-                } 
-
-                return Promise.resolve();
-            });
-        } catch(err) {
-            return Promise.reject(err);
-        }
+        return new Promise((resolve, reject) => {
+            try {
+                const db = client.db(dbName);
+                db.createCollection(table, (err, result) => {
+                    if (err) {
+                        throw err;
+                    } 
+    
+                    resolve();
+                });
+            } catch(err) {
+                reject(err);
+            }
+        });
     },
     multiSave({ dbName, table, datas }) {
-        try {
-            const db = client.db(dbName);
-            const collection = db.collection(table);
-            collection.insertMany(datas, (err, result) => {
-                if (err) {
-                    throw err;
-                } 
-
-                return Promise.resolve(result);
-            });
-        } catch(err) {
-            return Promise.reject(err);
-        }
-    },
-    multiUpdate({ dbName, table, filter, datas }) {
-        // 先删除table中符合filter的所有数据,再插入datas
-        try {
-            const db = client.db(dbName);
-            const collection = db.collection(table);
-            collection.deleteMany(filter, (err, result) => {
-                if (err) {
-                    throw err;
-                } 
-
+        return new Promise((resolve, reject) => {
+            try {
+                const db = client.db(dbName);
+                const collection = db.collection(table);
                 collection.insertMany(datas, (err, result) => {
                     if (err) {
                         throw err;
                     } 
-
-                    return Promise.resolve();
+    
+                    resolve(result);
                 });
-            });
-        } catch(err) {
-            return Promise.reject(err);
-        }
+            } catch(err) {
+                reject(err);
+            }
+        });
+    },
+    multiUpdate({ dbName, table, filter, datas }) {
+        // 先删除table中符合filter的所有数据,再插入datas
+        return new Promise((resolve, reject) => {
+            try {
+                const db = client.db(dbName);
+                const collection = db.collection(table);
+                collection.deleteMany(filter, (err, result) => {
+                    if (err) {
+                        throw err;
+                    } 
+    
+                    collection.insertMany(datas, (err, result) => {
+                        if (err) {
+                            throw err;
+                        } 
+    
+                        resolve();
+                    });
+                });
+            } catch(err) {
+                reject(err);
+            }
+        });
     }
 };
 
