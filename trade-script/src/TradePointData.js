@@ -61,10 +61,10 @@ function start() {
     function runOnce() {
         if (!files || !files.length) {
             console.log(`已全部写入完毕`);
+            storage.disConnect();
             return;
         }
 
-        console.log('log: begin run once');
         file = files.shift();
         stat = fs.statSync(path.join(filePath, file));
         if (!stat.isDirectory()) {
@@ -73,11 +73,8 @@ function start() {
                 code = file.slice(2, 8);
                 totalArray = [];
 
-                console.log('log: begin read file');
                 data = fs.readFileSync(path.join(filePath, file), {encoding: 'utf-8'});
-                console.log('log: read file end');
                 dataArray = data.split('\n'); 
-                console.log('log: convert to array end');
                 dataArray.forEach((item) => {
                     itemArray = item.split(/\s+/);   
                     time = '';
@@ -107,8 +104,6 @@ function start() {
                         });    
                     }
                 });
-
-                console.log('log: push to total array end, begin save to db');
 
                 const tableName = market == 'SH' ? SHTable : SZTable;
                 storage.multiUpdate({
@@ -148,18 +143,21 @@ function run() {
         password: config.password
     });
 
-    storage.createTable({
-        dbName: config.dbName,
-        table: SHTable
-    })
+    storage.connect()
     .then(() => {
         storage.createTable({
             dbName: config.dbName,
-            table: SZTable
+            table: SHTable
         })
-    })
-    .then(() => {
-        start();
+        .then(() => {
+            storage.createTable({
+                dbName: config.dbName,
+                table: SZTable
+            })
+        })
+        .then(() => {
+            start();
+        });
     });
 }
 
