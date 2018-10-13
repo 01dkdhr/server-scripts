@@ -28,9 +28,10 @@ function start() {
         process.exit();   
     }
 
+    let stat;
     let files = fs.readdirSync(filePath);
     for (let i = 0; i < files.length; ++i) {
-        var stat = fs.statSync(path.join(filePath, files[i]));
+        stat = fs.statSync(path.join(filePath, files[i]));
         if (stat.isDirectory()) {
             if (files[i].includes(`${pointDate}`)) {
                 filePath = path.join(filePath, files[i]);
@@ -48,7 +49,6 @@ function start() {
     console.log(`总共需要写入${files.length}文件`);
 
     let file,
-        stat,
         market,
         code,
         totalArray,
