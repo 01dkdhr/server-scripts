@@ -1,53 +1,51 @@
 const MongoClient = require('mongodb').MongoClient;
 
 let url = '';
-
-function connect() {
-    return new Promise((resolve, reject) => {
-        try {
-            MongoClient.connect(url, { useNewUrlParser: true }, (err, client) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                resolve(client);
-            });
-        } catch(e) {
-            reject(e);
-        }
-    }); 
-}
+let client;
 
 const storage = {
     init({ path, dbName, user, password }) {
         url = `mongodb://${user}:${password}@${path}/${dbName}`;
     },
+    connect() {
+        return new Promise((resolve, reject) => {
+            try {
+                MongoClient.connect(url, { useNewUrlParser: true }, (err, result) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+    
+                    client = result;
+                    resolve();
+                });
+            } catch(e) {
+                reject(e);
+            }
+        }); 
+    },
+    disConnect() {
+        client.close();
+        client = null;
+    },
     createTable({ dbName, table }) {
-        return (connect()
-        .then((client) => {
+        return new Promise((resolve, reject) => {
             try {
                 const db = client.db(dbName);
                 db.createCollection(table, (err, result) => {
                     if (err) {
                         throw err;
                     } 
-
-                    client.close();
-                    return Promise.resolve();
+    
+                    resolve();
                 });
             } catch(err) {
-                client.close();
-                return Promise.reject(err);
+                reject(err);
             }
-        })
-        .catch((err) => {
-            return Promise.reject(err);  
-        }));
+        });
     },
     multiSave({ dbName, table, datas }) {
-        return (connect()
-        .then((client) => {
+        return new Promise((resolve, reject) => {
             try {
                 const db = client.db(dbName);
                 const collection = db.collection(table);
@@ -55,23 +53,17 @@ const storage = {
                     if (err) {
                         throw err;
                     } 
-
-                    client.close();
-                    return Promise.resolve(result);
+    
+                    resolve(result);
                 });
             } catch(err) {
-                client.close();
-                return Promise.reject(err);
+                reject(err);
             }
-        })
-        .catch((err) => {
-            return Promise.reject(err);  
-        }));
+        });
     },
     multiUpdate({ dbName, table, filter, datas }) {
         // 先删除table中符合filter的所有数据,再插入datas
-        return (connect()
-        .then((client) => {
+        return new Promise((resolve, reject) => {
             try {
                 const db = client.db(dbName);
                 const collection = db.collection(table);
@@ -79,24 +71,19 @@ const storage = {
                     if (err) {
                         throw err;
                     } 
-
+    
                     collection.insertMany(datas, (err, result) => {
                         if (err) {
                             throw err;
                         } 
     
-                        client.close();
-                        return Promise.resolve();
+                        resolve();
                     });
                 });
             } catch(err) {
-                client.close();
-                return Promise.reject(err);
+                reject(err);
             }
-        })
-        .catch((err) => {
-            return Promise.reject(err);  
-        }));
+        });
     }
 };
 

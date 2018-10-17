@@ -28,9 +28,10 @@ function start() {
         process.exit();   
     }
 
+    let stat;
     let files = fs.readdirSync(filePath);
     for (let i = 0; i < files.length; ++i) {
-        var stat = fs.statSync(path.join(filePath, files[i]));
+        stat = fs.statSync(path.join(filePath, files[i]));
         if (stat.isDirectory()) {
             if (files[i].includes(`${pointDate}`)) {
                 filePath = path.join(filePath, files[i]);
@@ -47,28 +48,38 @@ function start() {
     files = fs.readdirSync(filePath);
     console.log(`总共需要写入${files.length}文件`);
 
-    let count = 0;
+    let file,
+        market,
+        code,
+        totalArray,
+        data,
+        dataArray,
+        itemArray,
+        time,
+        price,
+        count;
     function runOnce() {
         if (!files || !files.length) {
-            console.log(`总共需要写入${files.length}文件,一共完成了${count}个文件`);
+            console.log(`已全部写入完毕`);
+            storage.disConnect();
             return;
         }
 
-        const file = files.shift();
-        const stat = fs.statSync(path.join(filePath, file));
+        file = files.shift();
+        stat = fs.statSync(path.join(filePath, file));
         if (!stat.isDirectory()) {
             if (file.indexOf('SH') == 0 || file.indexOf('SZ') == 0) {
-                const market = file.slice(0, 2);
-                const code = file.slice(2, 8);
-                const totalArray = [];
+                market = file.slice(0, 2);
+                code = file.slice(2, 8);
+                totalArray = [];
 
-                const data = fs.readFileSync(path.join(filePath, file), {encoding: 'utf-8'});
-                const dataArray = data.split('\n'); 
+                data = fs.readFileSync(path.join(filePath, file), {encoding: 'utf-8'});
+                dataArray = data.split('\n'); 
                 dataArray.forEach((item) => {
-                    const itemArray = item.split(/\s+/);   
-                    let time = '';
-                    let price = '';
-                    let count = '';
+                    itemArray = item.split(/\s+/);   
+                    time = '';
+                    price = '';
+                    count = '';
                     for (let i = 0; i < itemArray.length; ++i) {
                         if (itemArray[i]) {
                             if (!time) {
@@ -105,7 +116,6 @@ function start() {
                     },
                     datas: totalArray
                 }).then(() => {
-                    count ++;
                     console.log(`写入: ${code}完成, 剩余${files.length}文件`);
                     fs.unlinkSync(path.join(filePath, file));
                     runOnce();    
@@ -133,9 +143,12 @@ function run() {
         password: config.password
     });
 
-    storage.createTable({
-        dbName: config.dbName,
-        table: SHTable
+    storage.connect()
+    .then(() => {
+        storage.createTable({
+            dbName: config.dbName,
+            table: SHTable
+        })
     })
     .then(() => {
         storage.createTable({
