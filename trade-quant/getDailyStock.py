@@ -8,29 +8,30 @@ import os
 import time
 from pymongo import MongoClient
 
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8') 
-
 filename = os.path.split(__file__)[-1]
 f = open("local-config.json", 'r')
 config = json.load(f)
 mongoInfo = config['mongo-db']
 
 def init(context):
-    result = get_instrumentinfos(symbols=None, exchanges=None, sec_types=None, names=None, fields=None, df=False)
-    lst = []
-    for item in result:
-        if item[u'sec_type'] == 1:
-            item[u'delisted_date'] = time.mktime(item[u'delisted_date'].timetuple())
-            item.pop(u'listed_date')
-            lst.append(item) 
-
-    # 写到数据库
+    # 读取数据库
     client = MongoClient(mongoInfo['host'], mongoInfo['port'])
     db = client['node-stock']
     db.authenticate(mongoInfo['user'], mongoInfo['password'])
-    db.stocks.insert_many(lst)
+    stocks = db['stocks'].find()
+    dailyStocks = db['daily-stocks']
+
+    count = 0
+    for stock in stocks:
+        result = history_n(symbol=stock['symbol'], frequency='1d', count=30, df=False)
+
+        for item in result:
+            item.eob = time.mktime(item.eob.timetuple())
+            item.bob = time.mktime(item.bob.timetuple())
+
+        dailyStocks.update({'symbol':stock['symbol']},{'symbol':stock['symbol'],'data':result}, upsert=True)
+        count = count + 1
+        print(str(count))
 
 if __name__ == '__main__':
     run(strategy_id='strategy_1', filename=filename, mode=MODE_BACKTEST, token=config['token'],
